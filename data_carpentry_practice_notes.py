@@ -96,3 +96,87 @@ s_plot = spc.plot(kind='bar', stacked=True, title="Total weight by site and sex"
 #set label names
 s_plot.set_ylabel("Weight")
 s_plot.set_xlabel("Plot")
+
+
+
+#subsetting data!!!
+#two ways to subset data,
+#1 use brackets
+survey_df['species_id']
+#2 use the name of the column you want as an attribute, like so:
+survey_df.species_id
+#can look at multiple columns at once
+survey_df[['species_id', 'plot_id']]
+#create as a new object to work with
+survey_species = survey_df['species_id']
+
+#reminder from datacarpentry: DO NOT USE reserved words, list is online
+
+#slicing
+#select row, row 3 IS NOT SELECTED
+surves_df[0:3]
+#select first 5 rows (0, 1, 2, 3, 4)
+survey_df[:5]
+#select last element
+survey_df[-1:]
+
+#BE CAREFUL of referencing using the = sign vs. copying .copy()
+
+#slicing subsets
+# iloc[row slicing, column slicing]
+survey_df.iloc[0:3, 1:4]
+# Select all columns for rows of index values 0 and 10
+survey_df.loc[[0, 10], :]
+# Syntax for iloc indexing to finding a specific data element
+dat.iloc[row, column]
+#row 2 of column 6
+survey_df.iloc[2, 6]
+#slices rows 0 through 3 and its 2nd through 5th column
+survey_df.iloc[0:4, 1:4]
+#look at all rows that have 2002 values
+survey_df[survey_df.year == 2002]
+#all rows that DO NOT CONTAIN 2002
+survey_df[survey_df.year != 2002]
+#set of criteria, for example rows with years greater than 1980 but 1985 or less
+survey_df[(survey_df.year >= 1980) & (survey_df.year <= 1985)]
+#challenge: select subset with data from the year 1999 and that
+#contains weight values less than or equal to 8
+survey_df[(survey_df.year == 1999) & (survey_df['weight'] <= 8)]
+#yay!
+#second part of the challenge asks to use ~ to show M or F, but I did it more directly
+survey_df[survey_df['sex'].isin(['F'])]
+
+#BOOLEAN i.e true/false
+#show all null spots in dataframe
+pd.isnull(survey_df)
+#select null value rows, use mask as an index to subset
+#use .any()
+survey_df[pd.isnull(survey_df).any(axis=1)]
+#what does this do?
+empty_weights = survey_df[pd.isnull(survey_df['weight'])]['weight']
+print(empty_weights)
+#shows all rows that have NaN in the weight column by using boolean object
+
+#challenge part one
+#Create a new DataFrame that only contains observations with sex values that are not female or male.
+#Assign each sex value in the new DataFrame to a new value of ‘x’.
+#Determine the number of null values in the subset.
+empty_sex = survey_df[pd.isnull(survey_df['sex'])]['sex']
+copy_empty_sex = empty_sex.copy()
+copy_empty_sex.fillna(value='x', inplace = True)
+copy_empty_sex.count()
+#output 2511
+
+#challenge part two
+#Create a new DataFrame that contains only observations that are of sex male or female
+#and where weight values are greater than 0. Create a stacked bar plot of average
+#weight by plot with male vs female values stacked for each plot.
+copy_survey_df = survey_df.copy()
+copy_survey_df = copy_survey_df.dropna()
+copy_survey_df[(copy_survey_df['weight'] >= 0)]
+site_sex = copy_survey_df.groupby(['plot_id', 'sex'])
+site_sex_count = site_sex['weight'].sum()
+pc = site_sex_count.unstack()
+s_plot = spc.plot(kind='bar', stacked=True, title="Total weight by site and sex")
+s_plot.set_ylabel("Weight")
+s_plot.set_xlabel("Plot")
