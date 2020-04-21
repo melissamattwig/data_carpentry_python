@@ -180,3 +180,23 @@ pc = site_sex_count.unstack()
 s_plot = spc.plot(kind='bar', stacked=True, title="Total weight by site and sex")
 s_plot.set_ylabel("Weight")
 s_plot.set_xlabel("Plot")
+
+#checking format types
+survey_df['sex'].dtype
+#output is O for object
+survey_df['record_id'].dtype
+#output is int64
+#data type for each column
+survey_df.dtypes
+#convert float to integer using int()
+#convert integer to float using float()
+#convert the record_id field from an integer to a float
+survey_df['record_id'] = survey_df['record_id'].astype('float64')
+
+#write out NaN data and save copy as csv to use later
+#FULL path from the beginning
+import pandas as pd
+survey_df = pd.read_csv("C:\Coding\data_carpentry_python-master\data\surveys.csv")
+copy_survey_df = survey_df.copy()
+copy_survey_df = copy_survey_df.dropna()
+copy_survey_df.to_csv('C:\Coding\data_carpentry_python-master\data\surveys_complete.csv', index=False)
