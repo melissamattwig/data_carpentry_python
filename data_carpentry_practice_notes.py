@@ -200,3 +200,94 @@ survey_df = pd.read_csv("C:\Coding\data_carpentry_python-master\data\surveys.csv
 copy_survey_df = survey_df.copy()
 copy_survey_df = copy_survey_df.dropna()
 copy_survey_df.to_csv('C:\Coding\data_carpentry_python-master\data\surveys_complete.csv', index=False)
+
+
+#Combining datdaframes!!!
+import pandas as pd
+survey_df = pd.read_csv("C:\Coding\data_carpentry_python-master\data\surveys.csv", keep_default_na=False, na_values=[""])
+species_df = pd.read_csv("C:\Coding\data_carpentry_python-master\data\species.csv",
+                         keep_default_na=False, na_values=[""])
+
+#read first 10 lines of surveys table
+survey_sub = survey_df.head(10)
+#read last 10 rows
+survey_sub_last10 = survey_df.tail(10)
+#reset the index values to the second dataframe
+#drop=True option avoids adding new index column with old index values
+survey_sub_last10 = survey_sub_last10.reset_index(drop=True)
+
+#stack the dataframes on top of each other
+vertical_stack = pd.concat([survey_sub, survey_sub_last10], axis=0)
+print(vertical_stack)
+#dataframes side by side
+horizontal_stack = pd.concat([survey_sub, survey_sub_last10], axis=1)
+print(horizontal_stack)
+#write vertical_stack to csv file
+vertical_stack.to_csv('C:\Coding\data_carpentry_python-master\data\out.csv', index=False)
+
+#challenge: In the data folder, there are two survey data files: survey2001.csv and survey2002.csv.
+#Read the data into Python and combine the files to make one new data frame.
+#Create a plot of average plot weight by year grouped by sex
+#Export your results as a CSV and make sure it reads back into Python properly.
+#but that data doesn't exists in the provided data, so I could just slice out data by year
+
+#So we can combine dataframes by using a query so we can keep dataframe sizes optimal
+
+import pandas as pd
+survey_df = pd.read_csv("C:\Coding\data_carpentry_python-master\data\surveys.csv", keep_default_na=False, na_values=[""])
+#using first 10 rows for ease of small dataframe
+survey_sub = survey_df.head(10)
+species_sub = pd.read_csv('C:\Coding\data_carpentry_python-master\data\species.csv', keep_default_na=False, na_values=[""])
+#speciesSubset doesn't exist in provided data
+
+#look at columns of both dataframes so as to find one to be the join key
+species_sub.columns
+survey_sub.columns
+#species_id is on both
+#could leave left on and right on blank since there's only one join key
+merged_inner = pd.merge(left=survey_sub, right=species_sub, left_on='species_id', right_on='species_id')
+#merge from the left
+merged_left = pd.merge(left=survey_sub, right=species_sub, how='left', left_on='species_id', right_on='species_id')
+merged_left
+#on the website it shows that the inner merge should be different from the left merge
+#in terms of how many rows are included, but I didn't see that???
+
+#challenge: Create a new DataFrame by joining the contents of the surveys.csv and species.csv tables
+#Then calculate and plot the distribution of: 1) taxa by plot and, 2) taxa by sex by plot
+
+import pandas as pd
+survey_df = pd.read_csv("C:\Coding\data_carpentry_python-master\data\surveys.csv", keep_default_na=False, na_values=[""])
+species_df = pd.read_csv('C:\Coding\data_carpentry_python-master\data\species.csv', keep_default_na=False, na_values=[""])
+copy_survey_df = survey_df.copy()
+merged_left = pd.merge(left=survey_df,right=species_df, how='left', on="species_id")
+#the bar plot looks weird
+merged_left.groupby(["plot_id"])["taxa"].nunique().plot(kind='bar')
+
+#by taxa by sex by plot
+merged_left.loc[merged_left["sex"].isnull(), "sex"] = 'M|F'
+
+#they add things that they didn't talk about like the M|F thing...
+
+ntaxa_sex_site= merged_left.groupby(["plot_id", "sex"])["taxa"].nunique().reset_index(level=1)
+ntaxa_sex_plot = ntaxa_sex_site.pivot_table(values="taxa", columns="sex", index=ntaxa_sex_site.index)
+ntaxa_sex_site.plot(kind="bar", legend=Fa
+
+#Challenge 2: Calculate a diversity index of your choice for control vs rodent exclosure plots.
+#The index should consider both species abundance and number of species.
+#You might choose to use the simple biodiversity index described here which calculates diversity as:
+#the number of species in the plot / the total number of individuals in the plot
+
+import pandas as pd
+survey_df = pd.read_csv("C:\Coding\data_carpentry_python-master\data\surveys.csv", keep_default_na=False, na_values=[""])
+species_df = pd.read_csv('C:\Coding\data_carpentry_python-master\data\species.csv', keep_default_na=False, na_values=[""])
+merged_left = pd.merge(left=survey_df,right=species_df, how='left', on="species_id")
+# number of species per site
+nspecies_site = merged_left.groupby(["plot_id"])["species_id"].nunique().rename("nspecies")
+# number of individuals per site
+nindividuals_site = merged_left.groupby(["plot_id"]).count()['record_id'].rename("nindiv")
+#combine them
+diversity_index = pd.concat([nspecies_site, nindividuals_site], axis=1)
+#calculate diversity index
+diversity_index['diversity'] = diversity_index['nspecies']/diversity_index['nindiv']
+diversity_index['diversity'].plot(kind="barh")
+
